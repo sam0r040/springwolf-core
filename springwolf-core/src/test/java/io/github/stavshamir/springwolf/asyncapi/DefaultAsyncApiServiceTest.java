@@ -5,16 +5,19 @@ import com.asyncapi.v2.model.channel.ChannelItem;
 import com.asyncapi.v2.model.info.Info;
 import com.asyncapi.v2.model.server.Server;
 import com.google.common.collect.ImmutableMap;
+import io.github.stavshamir.springwolf.SpringWolfConfigProperties;
 import io.github.stavshamir.springwolf.asyncapi.scanners.channels.operationdata.ConsumerOperationDataScanner;
 import io.github.stavshamir.springwolf.asyncapi.scanners.channels.operationdata.ProducerOperationDataScanner;
 import io.github.stavshamir.springwolf.asyncapi.types.ConsumerData;
 import io.github.stavshamir.springwolf.asyncapi.types.ProducerData;
 import io.github.stavshamir.springwolf.asyncapi.types.channel.operation.message.Message;
 import io.github.stavshamir.springwolf.configuration.AsyncApiDocket;
+import io.github.stavshamir.springwolf.configuration.AsyncApiDocketService;
 import io.github.stavshamir.springwolf.schemas.DefaultSchemasService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -27,12 +30,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {
+        AsyncApiDocketService.class,
         DefaultAsyncApiService.class,
         DefaultChannelsService.class,
         DefaultSchemasService.class,
         ProducerOperationDataScanner.class,
         ConsumerOperationDataScanner.class
 })
+@EnableConfigurationProperties(SpringWolfConfigProperties.class)
 @Import(DefaultAsyncApiServiceTest.DefaultAsyncApiServiceTestConfiguration.class)
 public class DefaultAsyncApiServiceTest {
 

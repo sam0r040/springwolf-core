@@ -18,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -104,21 +103,17 @@ public class ExampleJsonGenerator implements ExampleGenerator {
             return null;
         }
 
-        // Create an ObjectNode to hold the example JSON
-        JsonNode exampleNode = objectMapper.createObjectNode();
-
         // Handle special types (i.e. map) with custom @Schema annotation and specified example value
         Object additionalProperties = schema.getAdditionalProperties();
-        if (additionalProperties instanceof StringSchema) {
-            StringSchema additionalPropertiesSchema = (StringSchema) additionalProperties;
+        if (additionalProperties instanceof StringSchema additionalPropertiesSchema) {
             Object exampleValueString = additionalPropertiesSchema.getExample();
             if (exampleValueString != null) {
                 try {
-                    exampleNode = objectMapper.readTree(exampleValueString.toString());
+                    return objectMapper.readTree(exampleValueString.toString());
                 } catch (JsonProcessingException ex) {
                     log.debug("Unable to convert example to JSON: %s".formatted(exampleValue.toString()), ex);
                 }
-                return exampleNode;
+                return objectMapper.createObjectNode();
             }
         }
 
@@ -130,7 +125,9 @@ public class ExampleJsonGenerator implements ExampleGenerator {
         // exampleValue is represented in their native type
         if (exampleValue instanceof Boolean) {
             return (Boolean) exampleValue ? BooleanNode.TRUE : BooleanNode.FALSE;
-        } else if (exampleValue instanceof Number) {
+        }
+
+        if (exampleValue instanceof Number) {
             double doubleValue = ((Number) exampleValue).doubleValue();
 
             // Check if it's an integer (whole number)
@@ -143,22 +140,18 @@ public class ExampleJsonGenerator implements ExampleGenerator {
 
         try {
             // exampleValue (i.e. OffsetDateTime) is represented as string
-            exampleNode = JsonNodeFactory.instance.textNode(exampleValue.toString());
+            return JsonNodeFactory.instance.textNode(exampleValue.toString());
         } catch (IllegalArgumentException ex) {
             log.debug("Unable to convert example to JSON: %s".formatted(exampleValue.toString()), ex);
         }
 
-        return exampleNode;
+        return objectMapper.createObjectNode();
     }
 
     private static ArrayNode handleArraySchema(Schema schema, Map<String, Schema> definitions, Set<Schema> visited) {
-        ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
+        final ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
 
-        List<JsonNode> list = Arrays.asList(buildSchemaInternal(schema.getItems(), definitions, visited));
-
-        for (JsonNode node : list) arrayNode.add(node);
-
-        return arrayNode;
+        return arrayNode.add(buildSchemaInternal(schema.getItems(), definitions, visited));
     }
 
     private static String handleStringSchema(Schema schema) {

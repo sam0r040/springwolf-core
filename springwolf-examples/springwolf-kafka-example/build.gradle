@@ -54,6 +54,9 @@ dependencies {
 
     testRuntimeOnly "org.junit.jupiter:junit-jupiter:${junitJupiterVersion}"
 
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${jacksonVersion}"
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.1")
+
     permitTestUnusedDeclared "org.apache.kafka:kafka-clients:${kafkaClientsVersion}:test@jar"
 
     testImplementation("org.springframework.boot:spring-boot-starter-actuator")

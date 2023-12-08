@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.util.RawValue;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
@@ -25,6 +26,14 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.github.stavshamir.springwolf.configuration.properties.SpringwolfConfigConstants.SPRINGWOLF_SCHEMA_EXAMPLE_GENERATOR;
+
+
+// TODO: Wie bekommen wir den contentype aus @AsyncMessage bis zum Generator?
+// TODO: Example JsonGenerator: Traversieren vom Generieren Trennen
+// TODO: Einfach Yaml generieren?
+// TODO: Welche API brauchen wir beim Generieren? Parentmitgeben vs State im Generator
+// TODO: Wie wird der XML Root richtig gesetzt?
+
 
 @Slf4j
 @ConditionalOnProperty(name = SPRINGWOLF_SCHEMA_EXAMPLE_GENERATOR, havingValue = "buildin-json", matchIfMissing = true)
@@ -55,12 +64,19 @@ public class ExampleJsonGenerator implements ExampleGenerator {
     @Override
     public Object fromSchema(Schema schema, Map<String, Schema> definitions) {
         try {
-            String exampleString = buildSchema(schema, definitions);
-            return objectMapper.readValue(exampleString, Object.class);
-        } catch (JsonProcessingException | ExampleGeneratingException ex) {
+            JsonNode jsonNode = buildSchema2(schema, definitions);
+            JsonNode xmlNode = objectMapper.readTree(jsonNode.toString());
+            return new XmlMapper().writeValueAsString(xmlNode);
+            //return Yaml.mapper().writeValueAsString(jsonNode);
+            //return buildSchema(schema, definitions);
+        } catch (ExampleGeneratingException | JsonProcessingException e) {
             log.warn("Failed to build json example for schema {}", schema.getName());
         }
         return null;
+    }
+
+    static JsonNode buildSchema2(Schema schema, Map<String, Schema> definitions) {
+        return buildSchemaInternal(schema, definitions, new HashSet<>());
     }
 
     static String buildSchema(Schema schema, Map<String, Schema> definitions) {
